@@ -1,0 +1,65 @@
+/* Agroeco Multilingual — перемикач мов */
+.agml-flag {
+	display: inline-block;
+	width: 18px;
+	height: 12px;
+	object-fit: cover;
+	vertical-align: middle;
+	margin: 0 .35em 0 0;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, .08);
+}
+
+.agml-menu-item .agml-name,
+.agml-switcher .agml-name {
+	vertical-align: middle;
+}
+
+.agml-switcher {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.agml-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .75em;
+}
+
+.agml-list .agml-current a {
+	font-weight: 600;
+}
+
+.agml-dropdown {
+	position: relative;
+	display: inline-block;
+}
+
+.agml-dropdown .agml-toggle {
+	cursor: pointer;
+}
+
+.agml-dropdown ul {
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 1000;
+	min-width: 100%;
+	margin: 0;
+	padding: .25em 0;
+	list-style: none;
+	background: #fff;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+}
+
+.agml-dropdown:hover ul,
+.agml-dropdown:focus-within ul {
+	display: block;
+}
+
+.agml-dropdown li a {
+	display: block;
+	padding: .35em .75em;
+	white-space: nowrap;
+}

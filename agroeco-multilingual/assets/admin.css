@@ -1,0 +1,66 @@
+/* Agroeco Multilingual — адмінка */
+.agml-flag {
+	width: 18px;
+	height: 12px;
+	object-fit: cover;
+	vertical-align: middle;
+}
+
+#wpadminbar #wp-admin-bar-agml-language .agml-flag {
+	display: inline-block;
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+.column-agml_languages {
+	width: 9em;
+}
+
+.agml-translations {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.agml-tr {
+	position: relative;
+	display: inline-block;
+	line-height: 1;
+	text-decoration: none;
+}
+
+.agml-tr-current {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+}
+
+.agml-tr-missing .agml-flag,
+.agml-tr-missing .agml-code {
+	opacity: .3;
+}
+
+.agml-tr .agml-plus {
+	position: absolute;
+	right: -4px;
+	bottom: -6px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #2271b1;
+}
+
+.agml-code {
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.agml-meta-translations li {
+	margin-bottom: 6px;
+}
+
+.agml-settings .agml-languages {
+	max-width: 1100px;
+}
+
+.agml-settings .agml-add-language input[type="text"] {
+	margin-right: 4px;
+}
