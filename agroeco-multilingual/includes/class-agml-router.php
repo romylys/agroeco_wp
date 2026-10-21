@@ -276,6 +276,20 @@ class AGML_Router {
 		return $url;
 	}
 
+	/**
+	 * Схема та домен сайту для поточної мови (лише з налаштувань, не із запиту).
+	 */
+	public function current_origin() {
+		$parts = AGML_Settings::URL_DOMAIN === $this->plugin->settings->get( 'url_format' )
+			? $this->domain_for( $this->current )
+			: wp_parse_url( get_option( 'home' ) );
+
+		$scheme = isset( $parts['scheme'] ) ? $parts['scheme'] : ( is_ssl() ? 'https' : 'http' );
+		$host   = isset( $parts['host'] ) ? $parts['host'] : '';
+		$port   = isset( $parts['port'] ) ? ':' . (int) $parts['port'] : '';
+		return $scheme . '://' . $host . $port;
+	}
+
 	private function domain_for( $lang ) {
 		$domains = (array) $this->plugin->settings->get( 'domains' );
 		if ( $lang === $this->plugin->default_language() || empty( $domains[ $lang ] ) ) {

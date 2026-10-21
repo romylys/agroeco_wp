@@ -190,9 +190,11 @@ class AGML_Plugin {
 	 * Мова запису, що зараз зберігається (з форми, з БД або поточна).
 	 */
 	public function language_for_saved_post( $post_id, $post_type ) {
-		// phpcs:ignore WordPress.Security.NonceVerification
-		if ( isset( $_POST['agml_language'] ) && $this->is_active_language( sanitize_key( $_POST['agml_language'] ) ) ) {
-			return sanitize_key( $_POST['agml_language'] ); // phpcs:ignore WordPress.Security.NonceVerification
+		if ( isset( $_POST['agml_language'], $_POST['agml_nonce'] ) && wp_verify_nonce( sanitize_key( $_POST['agml_nonce'] ), 'agml_save_post' ) ) {
+			$lang = sanitize_key( wp_unslash( $_POST['agml_language'] ) );
+			if ( $this->is_active_language( $lang ) ) {
+				return $lang;
+			}
 		}
 		if ( $post_id ) {
 			$lang = $this->db->get_element_language( $post_id, 'post_' . $post_type );

@@ -56,8 +56,12 @@ class AGML_Admin {
 		if ( ! isset( $_GET['agml_admin_lang'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
 		}
+		if ( ! isset( $_GET['_agmlnonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['_agmlnonce'] ), 'agml_admin_lang' ) ) {
+			wp_safe_redirect( remove_query_arg( array( 'agml_admin_lang', '_agmlnonce' ) ) );
+			exit;
+		}
 		$this->plugin->set_admin_language( sanitize_key( wp_unslash( $_GET['agml_admin_lang'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification
-		wp_safe_redirect( remove_query_arg( array( 'agml_admin_lang', 'agml_lang' ) ) );
+		wp_safe_redirect( remove_query_arg( array( 'agml_admin_lang', 'agml_lang', '_agmlnonce' ) ) );
 		exit;
 	}
 
@@ -84,7 +88,7 @@ class AGML_Admin {
 					'parent' => 'agml-language',
 					'id'     => 'agml-language-' . $code,
 					'title'  => $this->flag_html( $code ) . esc_html( $language['native_name'] ),
-					'href'   => add_query_arg( 'agml_admin_lang', $code ),
+					'href'   => $this->admin_lang_url( $code ),
 				)
 			);
 		}
@@ -93,7 +97,16 @@ class AGML_Admin {
 				'parent' => 'agml-language',
 				'id'     => 'agml-language-all',
 				'title'  => esc_html__( 'Усі мови', 'agroeco-multilingual' ),
-				'href'   => add_query_arg( 'agml_admin_lang', 'all' ),
+				'href'   => $this->admin_lang_url( 'all' ),
+			)
+		);
+	}
+
+	private function admin_lang_url( $lang ) {
+		return add_query_arg(
+			array(
+				'agml_admin_lang' => $lang,
+				'_agmlnonce'      => wp_create_nonce( 'agml_admin_lang' ),
 			)
 		);
 	}
@@ -198,14 +211,14 @@ class AGML_Admin {
 		foreach ( $this->plugin->active_languages() as $code => $language ) {
 			$views[ 'agml-' . $code ] = sprintf(
 				'<a href="%s"%s>%s</a>',
-				esc_url( add_query_arg( 'agml_admin_lang', $code ) ),
+				esc_url( $this->admin_lang_url( $code ) ),
 				$code === $current ? ' class="current" aria-current="page"' : '',
 				esc_html( $language['native_name'] )
 			);
 		}
 		$views['agml-all'] = sprintf(
 			'<a href="%s"%s>%s</a>',
-			esc_url( add_query_arg( 'agml_admin_lang', 'all' ) ),
+			esc_url( $this->admin_lang_url( 'all' ) ),
 			'all' === $current ? ' class="current" aria-current="page"' : '',
 			esc_html__( 'Усі мови', 'agroeco-multilingual' )
 		);
@@ -314,9 +327,13 @@ class AGML_Admin {
 
 		check_admin_referer( 'agml_translate_' . $post_id );
 
-		$original = get_post( $post_id );
-		if ( ! $original || ! current_user_can( 'edit_post', $post_id ) || ! $this->plugin->is_active_language( $lang ) ) {
-			wp_die( esc_html__( 'Неможливо створити переклад.', 'agroeco-multilingual' ) );
+		$original  = get_post( $post_id );
+		$type_obj  = $original ? get_post_type_object( $original->post_type ) : null;
+		$can_write = $type_obj && current_user_can( 'edit_post', $post_id ) && current_user_can( $type_obj->cap->create_posts );
+
+		if ( ! $can_write || ! $this->plugin->is_translatable_post_type( $original->post_type ) || ! $this->plugin->is_active_language( $lang )
+			|| $lang === $this->plugin->get_post_language( $original ) ) {
+			wp_die( esc_html__( 'Неможливо створити переклад.', 'agroeco-multilingual' ), 403 );
 		}
 
 		$type = 'post_' . $original->post_type;
@@ -619,6 +636,9 @@ class AGML_Admin {
 				if ( $code === $lang || ! $this->plugin->is_active_language( $code ) ) {
 					continue;
 				}
+				if ( $tt_id && ( (int) $menu->term_taxonomy_id === $tt_id || ! $this->is_nav_menu_tt_id( $tt_id ) ) ) {
+					continue;
+				}
 
 				// Від'єднуємо меню, яке раніше було перекладом цією мовою.
 				$group = $db->get_translations_by_trid( $trid );
@@ -633,6 +653,11 @@ class AGML_Admin {
 
 		wp_safe_redirect( admin_url( 'nav-menus.php?menu=' . ( $menu ? (int) $menu->term_id : 0 ) ) );
 		exit;
+	}
+
+	private function is_nav_menu_tt_id( $tt_id ) {
+		global $wpdb;
+		return 'nav_menu' === $wpdb->get_var( $wpdb->prepare( "SELECT taxonomy FROM {$wpdb->term_taxonomy} WHERE term_taxonomy_id = %d", $tt_id ) );
 	}
 
 	/* ------------------------------------------------------------------

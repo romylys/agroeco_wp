@@ -163,11 +163,24 @@ class AGML_Switcher {
 		return $term instanceof WP_Term ? $term : null;
 	}
 
+	/**
+	 * URL поточної сторінки. Домен береться з налаштувань сайту, а не із заголовка Host,
+	 * який контролює клієнт (інакше можлива підміна посилань через кеш сторінок).
+	 */
 	private function current_url() {
-		$scheme = is_ssl() ? 'https://' : 'http://';
-		$host   = isset( $_SERVER['HTTP_HOST'] ) ? wp_unslash( $_SERVER['HTTP_HOST'] ) : '';
-		$uri    = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/';
-		return esc_url_raw( $scheme . $host . $uri );
+		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		$uri  = '/' . ltrim( $uri, '/' );
+		$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+		$qs   = (string) wp_parse_url( $uri, PHP_URL_QUERY );
+
+		$origin = $this->plugin->router->current_origin();
+		$home   = (string) wp_parse_url( get_option( 'home' ), PHP_URL_PATH );
+		$home   = '' === trim( $home, '/' ) ? '' : '/' . trim( $home, '/' );
+		if ( '' !== $home && 0 === strpos( $path, $home ) ) {
+			$path = substr( $path, strlen( $home ) );
+		}
+
+		return esc_url_raw( $origin . $home . '/' . ltrim( $path, '/' ) . ( '' !== $qs ? '?' . $qs : '' ) );
 	}
 
 	/* ------------------------------------------------------------------

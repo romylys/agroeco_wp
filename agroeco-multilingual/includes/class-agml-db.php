@@ -231,8 +231,19 @@ class AGML_DB {
 			$trid = $existing ? (int) $existing['trid'] : $this->next_trid();
 		}
 
-		// В одній групі trid може бути лише один елемент кожною мовою.
+		// Група trid може містити лише елементи того самого типу (запис не можна
+		// зробити «перекладом» рубрики чи меню через підроблений trid у формі).
 		$taken = $this->get_translations_by_trid( $trid );
+		foreach ( $taken as $member ) {
+			if ( $member['element_type'] !== $element_type ) {
+				$trid        = $existing && (int) $existing['trid'] !== (int) $trid ? (int) $existing['trid'] : $this->next_trid();
+				$source_lang = null;
+				$taken       = $this->get_translations_by_trid( $trid );
+				break;
+			}
+		}
+
+		// В одній групі trid може бути лише один елемент кожною мовою.
 		if ( isset( $taken[ $lang ] ) && (int) $taken[ $lang ]['element_id'] !== (int) $element_id ) {
 			$trid        = $this->next_trid();
 			$source_lang = null;
