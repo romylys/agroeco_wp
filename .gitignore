@@ -1,0 +1,16 @@
+# Тестове оточення (WordPress, згенерований wp-config.php з одноразовими паролями, логи)
+tests/e2e/.work/
+
+# Секрети та локальні налаштування — ніколи не комітити
+.env
+.env.*
+wp-config.php
+*.sql
+*.sql.gz
+
+# Системні та редакторські файли
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
